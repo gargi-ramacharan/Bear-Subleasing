@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bear Leasing</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">Bear Subleasing</div>
+    <nav>
+      <a href="#listings">Listings</a>
+      <a href="#post">Post a Sublease</a>
+      <a href="#about">About</a>
+    </nav>
+  </header>   
+
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <p class="tag">Berkeley student subleasing made simple</p>
+        <h1>Find or post summer housing near campus.</h1>
+        <p class="subtitle">
+          Bear Leasing helps Berkeley students share verified sublease listings for Northside and Southside apartments.
+        </p>
+        <div class="hero-buttons">
+          <a class="primary-btn" href="#post">Post a Listing</a>
+          <a class="secondary-btn" href="#listings">Browse Listings</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <h2>Featured Listing</h2>
+        <p class="price">$1,350/mo</p>
+        <p>Southside, 8 minute walk to campus, available June to August.</p>
+        <span class="pill">Available</span>
+      </div>
+    </section>
+
+    <section id="listings" class="section">
+      <div class="section-heading">
+        <h2>Current Listings</h2>
+        <p>Listings saved will appear here.</p>
+      </div>
+      <div id="listingGrid" class="listing-grid"></div>
+    </section>
+
+    <section id="post" class="section form-section">
+      <div class="section-heading">
+        <h2>Post a Sublease</h2>
+        <p>Add a quick listing for your Berkeley sublease.</p>
+      </div>
+
+      <form id="listingForm" class="listing-form">
+        <label>
+          Title
+          <input name="title" type="text" placeholder="Northside Apartment/Condo in Quiet Neighborhood" required />
+        </label>
+
+        <label>
+          Price
+          <input name="price" type="number" placeholder="1000+" required />
+        </label>
+
+        <label>
+          Location
+          <select name="location" required>
+            <option value="southside">Southside</option>
+            <option value="northside">Northside</option>
+            <option value="downtown">Downtown</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+
+        <label>
+          Contact Email
+          <input name="contactEmail" type="email" placeholder="student@berkeley.edu" required />
+        </label>
+
+        <label class="full-width">
+          Description
+          <textarea name="description" placeholder="Describe room, dates, furniture, roommates, and distance to campus"></textarea>
+        </label>
+
+        <button type="submit">Create Sublisting</button>
+      </form>
+    </section>
+
+    <section id="about" class="section about-card">
+      <h2>Why Bear Subleasing?</h2>
+      <p>
+        Bear Subleasing is built for Berkeley students who need a safer and easier way to find short-term
+        housing. Instead of search through random group chats, instagram stories, or unreliable listings, students can
+        browse subleases near campus, compare options all around Berkeley campus, and contact the person posting directly.
+        The goal is to make summer housing and lense transfers simple and easy to manage.
+      </p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
