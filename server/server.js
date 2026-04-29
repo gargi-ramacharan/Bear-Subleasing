@@ -14,10 +14,24 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-mongoose
-  .connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/bearLeasingDB')
-  .then(() => console.log('MongoDB connected'))
-  .catch((error) => console.error('MongoDB connection error:', error));
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) return;
+  await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/bearLeasingDB');
+  isConnected = true;
+  console.log('MongoDB connected');
+}
+
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    res.status(500).json({ message: 'Database connection failed' });
+  }
+});
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Bear Leasing server is running' });
