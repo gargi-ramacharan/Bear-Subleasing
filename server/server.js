@@ -14,24 +14,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-let isConnected = false;
-
-async function connectDB() {
-  if (isConnected) return;
-  await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/bearLeasingDB');
-  isConnected = true;
-  console.log('MongoDB connected');
-}
-
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    res.status(500).json({ message: 'Database connection failed' });
-  }
-});
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('✅ Connected to MongoDB!'))
+  .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Bear Leasing server is running' });
@@ -61,11 +46,7 @@ app.patch('/api/listings/:id', async (req, res) => {
       new: true,
       runValidators: true,
     });
-
-    if (!listing) {
-      return res.status(404).json({ message: 'Listing not found' });
-    }
-
+    if (!listing) return res.status(404).json({ message: 'Listing not found' });
     res.json(listing);
   } catch (error) {
     res.status(400).json({ message: 'Could not update listing', error: error.message });
@@ -75,11 +56,7 @@ app.patch('/api/listings/:id', async (req, res) => {
 app.delete('/api/listings/:id', async (req, res) => {
   try {
     const listing = await Listing.findByIdAndDelete(req.params.id);
-
-    if (!listing) {
-      return res.status(404).json({ message: 'Listing not found' });
-    }
-
+    if (!listing) return res.status(404).json({ message: 'Listing not found' });
     res.json({ message: 'Listing deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Could not delete listing', error: error.message });
