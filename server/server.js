@@ -9,39 +9,36 @@ const User = require('./models/users');
 
 const app = express();
 
+// MIDDLEWARE
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-let isConnected = false;
+// THE VERCEL FIX: Connection Singleton
+// This prevents the "Too Many Connections" error seen in your logs
+let cachedDb = null;
 
 const connectDB = async () => {
-  mongoose.set('strictQuery', true);
-  if (isConnected) return;
-
-  try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-    });
-    isConnected = true;
-    console.log('✅ Connected to MongoDB!');
-  } catch (err) {
-    console.error('❌ MongoDB Connection Error:', err);
-    throw err;
+  if (cachedDb && mongoose.connection.readyState === 1) {
+    return cachedDb;
   }
+  console.log('--- Establishing New MongoDB Connection ---');
+  const db = await mongoose.connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 5000,
+  });
+  cachedDb = db;
+  return db;
 };
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Bear Leasing server is running' });
-});
-
+// API ROUTES
 app.get('/api/listings', async (req, res) => {
   try {
     await connectDB();
     const listings = await Listing.find().sort({ createdAt: -1 });
     res.json(listings);
   } catch (error) {
-    res.status(500).json({ message: 'Could not fetch listings', error: error.message });
+    console.error("Listings Error:", error);
+    res.status(500).json({ message: 'Error fetching listings' });
   }
 });
 
@@ -51,49 +48,31 @@ app.post('/api/listings', async (req, res) => {
     const listing = await Listing.create(req.body);
     res.status(201).json(listing);
   } catch (error) {
-    res.status(400).json({ message: 'Could not create listing', error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
-app.patch('/api/listings/:id', async (req, res) => {
-  try {
-    await connectDB();
-    const listing = await Listing.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!listing) return res.status(404).json({ message: 'Listing not found' });
-    res.json(listing);
-  } catch (error) {
-    res.status(400).json({ message: 'Could not update listing', error: error.message });
-  }
-});
-
-app.delete('/api/listings/:id', async (req, res) => {
-  try {
-    await connectDB();
-    const listing = await Listing.findByIdAndDelete(req.params.id);
-    if (!listing) return res.status(404).json({ message: 'Listing not found' });
-    res.json({ message: 'Listing deleted' });
-  } catch (error) {
-    res.status(500).json({ message: 'Could not delete listing', error: error.message });
-  }
-});
-
+// USERS
 app.get('/api/users', async (req, res) => {
   try {
     await connectDB();
-    const users = await User.find().populate('listings').sort({ createdAt: -1 });
+    const users = await User.find().populate('listings');
     res.json(users);
   } catch (error) {
-    res.status(500).json({ message: 'Could not fetch users', error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
-app.post('/api/users', async (req, res) => {
-  try {
-    await connectDB();
-    const user = await User.create(req.body);
-    res.status(201).json(user);
-  } catch (error) {
-    res.status(400).json({ message: 'Could not create user
+// FRONTEND CATCH-ALL
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// EXPORT FOR VERCEL (Crucial)
+module.exports = app;
+
+// LOCAL ONLY
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5001;
+  app.listen(PORT, () => console.log(`Server at http://localhost:${PORT}`));
+}
